@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8" />
+    <title>Carte Mapbox – OSM, Points & Légende</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <!-- Mapbox GL JS -->
+    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
+    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        #map {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        /* 🧭 Légende */
+        .legend {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background: white;
+            padding: 10px 12px;
+            border-radius: 6px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+            font-family: Arial, sans-serif;
+            font-size: 12px;
+            line-height: 18px;
+        }
+
+        .legend h4 {
+            margin: 0 0 6px;
+            font-size: 13px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+        }
+
+        .legend-symbol {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 6px;
+            background-color: #e63946; /* couleur du point */
+        }
+    </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<!-- 🧭 Légende -->
+<div class="legend">
+    <h4>Légende</h4>
+    <div class="legend-item">
+        <div class="legend-symbol"></div>
+        <span>Points d’intérêt</span>
+    </div>
+</div>
+
+<script>
+    mapboxgl.accessToken = 'pk.eyJ1Ijoib2xpdmlhY2hweCIsImEiOiJja2dud3NlZXUweHkwMnJyeG53OTRsejUwIn0.x3V15sR7QM63wjr91oBh6Q';
+
+    const map = new mapboxgl.Map({
+        container: 'map',
+        style: 'mapbox://styles/oliviachpx/cmkvg5c2c000t01s716f4e1sp',
+        center: [6.6323, 46.5197], // Lausanne
+        zoom: 12
+    });
+
+    map.on('load', () => {
+
+        // 🗺️ Fond OSM
+        map.addSource('osm', {
+            type: 'raster',
+            tiles: [
+                'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
+            ],
+            tileSize: 256,
+            attribution: '&copy; OpenStreetMap contributors'
+        });
+
+        map.addLayer(
+            {
+                id: 'osm-background',
+                type: 'raster',
+                source: 'osm'
+            },
+            map.getStyle().layers[0].id
+        );
+
+        // 🖱️ Interactions couche points
+        map.on('mouseenter', 'points', () => {
+            map.getCanvas().style.cursor = 'pointer';
+        });
+
+        map.on('mouseleave', 'points', () => {
+            map.getCanvas().style.cursor = '';
+        });
+
+        map.on('click', 'points', (e) => {
+            const p = e.features[0].properties;
+
+            const html = `
+                <strong>FID :</strong> ${p.fid ?? 'N/A'}<br>
+                <strong>Tunnel :</strong> ${p.tunnel ?? 'N/A'}<br>
+                <strong>Vacuum cleaner :</strong> ${p.vacuum_cleaner ?? 'N/A'}<br>
+                <strong>Auto :</strong> ${p.auto ?? 'N/A'}
+            `;
+
+            new mapboxgl.Popup()
+                .setLngLat(e.features[0].geometry.coordinates)
+                .setHTML(html)
+                .addTo(map);
+        });
+    });
+</script>
+
+</body>
+</html>
