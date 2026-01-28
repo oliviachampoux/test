@@ -1,128 +1,199 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="utf-8" />
-    <title>Carte Mapbox – OSM, Points & Légende</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta charset="utf-8" />
+<title>Carte interactive – Stations & Véhicules</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Mapbox GL JS -->
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet">
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<!-- Leaflet -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-        }
-        #map {
-            width: 100vw;
-            height: 100vh;
-        }
+<style>
+body { margin:0; padding:0; }
+#map { width:100vw; height:100vh; }
 
-        /* 🧭 Légende */
-        .legend {
-            position: absolute;
-            bottom: 20px;
-            right: 20px;
-            background: white;
-            padding: 10px 12px;
-            border-radius: 6px;
-            box-shadow: 0 1px 4px rgba(0,0,0,0.3);
-            font-family: Arial, sans-serif;
-            font-size: 12px;
-            line-height: 18px;
-        }
+.map-title {
+    position:absolute;
+    top:1px;
+    left:50%;
+    transform:translateX(-50%);
+    background:white;
+    padding:6px 12px;
+    border-radius:6px;
+    font-family:Arial, sans-serif;
+    font-size:16px;
+    font-weight:bold;
+    box-shadow:0 1px 4px rgba(0,0,0,0.3);
+    z-index:1000;
+}
 
-        .legend h4 {
-            margin: 0 0 6px;
-            font-size: 13px;
-        }
+.legend {
+    background:white;
+    padding:10px 12px;
+    border-radius:6px;
+    font-family:Arial, sans-serif;
+    font-size:12px;
+    box-shadow:0 1px 4px rgba(0,0,0,0.3);
+}
 
-        .legend-item {
-            display: flex;
-            align-items: center;
-        }
+.legend-item {
+    display:flex;
+    align-items:center;
+    margin-bottom:4px;
+}
 
-        .legend-symbol {
-            width: 12px;
-            height: 12px;
-            border-radius: 50%;
-            margin-right: 6px;
-            background-color: #e63946; /* couleur du point */
-        }
-    </style>
+.legend-symbol {
+    width:10px;
+    height:10px;
+    border-radius:50%;
+    margin-right:6px;
+}
+</style>
 </head>
+
 <body>
 
 <div id="map"></div>
-
-<!-- 🧭 Légende -->
-<div class="legend">
-    <h4>Légende</h4>
-    <div class="legend-item">
-        <div class="legend-symbol"></div>
-        <span>Points d’intérêt</span>
-    </div>
-</div>
+<div class="map-title">Carte des Stations & Véhicules – Lausanne</div>
 
 <script>
-    mapboxgl.accessToken = 'pk.eyJ1Ijoib2xpdmlhY2hweCIsImEiOiJja2dud3NlZXUweHkwMnJyeG53OTRsejUwIn0.x3V15sR7QM63wjr91oBh6Q';
+// ============================
+// GEOJSON INLINE
+// ============================
 
-    const map = new mapboxgl.Map({
-        container: 'map',
-        style: 'mapbox://styles/oliviachpx/cmkvg5c2c000t01s716f4e1sp',
-        center: [6.6323, 46.5197], // Lausanne
-        zoom: 12
-    });
+const pointsGeojson = {
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "properties": { "fid": 318, "tunnel": "pas ok", "vacuum_cleaner": "10", "auto": "no" }, "geometry": { "type": "Point", "coordinates": [ 6.086534806018777, 46.227776110267541 ] } },
+    { "type": "Feature", "properties": { "fid": 319, "tunnel": "pas ok", "vacuum_cleaner": "10", "auto": "yes" }, "geometry": { "type": "Point", "coordinates": [ 6.124134206061325, 46.236183310264799 ] } },
+    { "type": "Feature", "properties": { "fid": 320, "tunnel": "pas ok", "vacuum_cleaner": "10", "auto": "no" }, "geometry": { "type": "Point", "coordinates": [ 6.207371106156747, 46.245808510253838 ] } },
+    { "type": "Feature", "properties": { "fid": 332, "tunnel": "pas ok", "vacuum_cleaner": "10", "auto": "no" }, "geometry": { "type": "Point", "coordinates": [ 7.385911307493613, 46.226962209993779 ] } },
+    { "type": "Feature", "properties": { "fid": 334, "tunnel": "pas ok", "vacuum_cleaner": "10", "auto": "no" }, "geometry": { "type": "Point", "coordinates": [ 7.002380007063762, 46.250894210092824 ] } },
+    { "type": "Feature", "properties": { "fid": 339, "tunnel": "pas ok", "vacuum_cleaner": "10", "auto": "no" }, "geometry": { "type": "Point", "coordinates": [ 6.926930806860554,  46.818288610370452 ] } },
+    { "type": "Feature", "properties": { "fid": 344, "tunnel": "pas ok", "vacuum_cleaner": "10", "auto": "yes" }, "geometry": { "type": "Point", "coordinates": [ 6.586054906541017, 46.521219110312323 ] } },
+    { "type": "Feature", "properties": { "fid": 345, "tunnel": "pas ok", "vacuum_cleaner": "10", "auto": "yes" }, "geometry": { "type": "Point", "coordinates": [ 6.643762906592652, 46.589921010331864 ] } },
+    { "type": "Feature", "properties": { "fid": 346, "tunnel": "pas ok", "vacuum_cleaner": "10", "auto": "no" }, "geometry": { "type": "Point", "coordinates": [ 6.836103906833757, 46.467091210233917 ] } },
+    { "type": "Feature", "properties": { "fid": 348, "tunnel": "pas ok", "vacuum_cleaner": "10", "auto": "yes" }, "geometry": { "type": "Point", "coordinates": [ 7.901015508033974, 46.29386180990106 ] } },
+    { "type": "Feature", "properties": { "fid": 350, "tunnel": "pas ok", "vacuum_cleaner": "10", "auto": "yes" }, "geometry": { "type": "Point", "coordinates": [ 7.369439107476287, 46.22353420999594 ] } },
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [6.6323,46.5197] }, "properties": { "fid":1,"tunnel":"No","auto":"yes" } },
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [6.64,46.52] }, "properties": { "fid":2,"tunnel":"Yes","auto":"no" } }
+    // ➤ remplace par tous tes points
+  ]
+};
 
-    map.on('load', () => {
+const vehiGeojson = {
+  "type": "FeatureCollection",
+  "features": [
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [6.633,46.5195] }, "properties": { "id":101,"status":"active" } },
+    { "type": "Feature", "geometry": { "type": "Point", "coordinates": [6.638,46.521] }, "properties": { "id":102,"status":"inactive" } }
+    // ➤ remplace par tous tes véhicules
+  ]
+};
 
-        // 🗺️ Fond OSM
-        map.addSource('osm', {
-            type: 'raster',
-            tiles: [
-                'https://a.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                'https://b.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                'https://c.tile.openstreetmap.org/{z}/{x}/{y}.png'
-            ],
-            tileSize: 256,
-            attribution: '&copy; OpenStreetMap contributors'
-        });
+// ============================
+// CARTE
+// ============================
 
-        map.addLayer(
-            {
-                id: 'osm-background',
-                type: 'raster',
-                source: 'osm'
-            },
-            map.getStyle().layers[0].id
-        );
+const map = L.map('map').setView([46.5197, 6.6323], 12);
 
-        // 🖱️ Interactions couche points
-        map.on('mouseenter', 'points', () => {
-            map.getCanvas().style.cursor = 'pointer';
-        });
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  attribution: '&copy; OpenStreetMap contributors'
+}).addTo(map);
 
-        map.on('mouseleave', 'points', () => {
-            map.getCanvas().style.cursor = '';
-        });
+// ============================
+// LEGEND FIXE
+// ============================
 
-        map.on('click', 'points', (e) => {
-            const p = e.features[0].properties;
+const legend = L.control({position: 'bottomright'});
 
-            const html = `
-                <strong>FID :</strong> ${p.fid ?? 'N/A'}<br>
-                <strong>Tunnel :</strong> ${p.tunnel ?? 'N/A'}<br>
-                <strong>Vacuum cleaner :</strong> ${p.vacuum_cleaner ?? 'N/A'}<br>
-                <strong>Auto :</strong> ${p.auto ?? 'N/A'}
-            `;
+legend.onAdd = function(map) {
+  const div = L.DomUtil.create('div', 'legend');
+  div.innerHTML = `
+    <strong>Stations (auto)</strong><br>
+    <div class="legend-item">
+        <input type="checkbox" id="auto-yes" checked>
+        <div class="legend-symbol" style="background:green;"></div> Yes
+    </div>
+    <div class="legend-item">
+        <input type="checkbox" id="auto-no" checked>
+        <div class="legend-symbol" style="background:red;"></div> No
+    </div>
+  `;
+  return div;
+};
 
-            new mapboxgl.Popup()
-                .setLngLat(e.features[0].geometry.coordinates)
-                .setHTML(html)
-                .addTo(map);
-        });
-    });
+legend.addTo(map);
+
+// ============================
+// POINTS (stations)
+// ============================
+
+let pointsLayer;
+
+function stylePoints(feature) {
+  return {
+    radius: 6,
+    fillColor: feature.properties.auto === 'yes' ? 'green' : 'red',
+    color: '#000',
+    weight: 1,
+    fillOpacity: 1
+  };
+}
+
+function onEachPoint(feature, layer) {
+  layer.bindPopup(`
+    <strong>FID :</strong> ${feature.properties.fid}<br>
+    <strong>Auto :</strong> ${feature.properties.auto}<br>
+    <strong>Tunnel :</strong> ${feature.properties.tunnel}
+  `);
+}
+
+function updatePoints() {
+  if (pointsLayer) map.removeLayer(pointsLayer);
+
+  pointsLayer = L.geoJSON(pointsGeojson, {
+    filter: f => {
+      const auto = f.properties.auto;
+      return (
+        (auto === 'yes' && document.getElementById('auto-yes').checked) ||
+        (auto === 'no' && document.getElementById('auto-no').checked)
+      );
+    },
+    pointToLayer: (f, latlng) => L.circleMarker(latlng, stylePoints(f)),
+    onEachFeature: onEachPoint
+  }).addTo(map);
+}
+
+// ============================
+// VEHI (véhicules)
+// ============================
+
+L.geoJSON(vehiGeojson, {
+  pointToLayer: (f, latlng) =>
+    L.circleMarker(latlng, {
+      radius: 5,
+      fillColor: '#003366',
+      color: '#003366',
+      weight: 1,
+      fillOpacity: 1
+    }),
+  onEachFeature: (f, layer) => {
+    layer.bindPopup(`
+      <strong>ID :</strong> ${f.properties.id}<br>
+      <strong>Status :</strong> ${f.properties.status}
+    `);
+  }
+}).addTo(map);
+
+// ============================
+// INTERACTIONS
+// ============================
+
+document.getElementById('auto-yes').addEventListener('change', updatePoints);
+document.getElementById('auto-no').addEventListener('change', updatePoints);
+
+updatePoints();
 </script>
 
 </body>
